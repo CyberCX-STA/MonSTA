@@ -1,25 +1,35 @@
-	           	   	                                                        /////////////////  
-            	                                                       ////////////////////////  
-              	                                                   ///////////////////////////// 
-                	                                       ///////////////////////////// ////////// 
-                  	              	                      ///////////////////////////// ///////////// 
-                    	                                  //////////////////////////// ///////////////
-	 _           _                         _              /////////////////////////// ////////////////
-	| |         | |                       | |               //////////////////////// //////////////
-	| |     __ _| |__  _ __ __ _ _ __   __| | ___  _ __       ///////////////////// ////////   ////
-	| |    / _` | '_ \| '__/ _` | '_ \ / _` |/ _ \| '__|          //////////////////    /////////// 
-	| |___| (_| | |_) | | | (_| | | | | (_| | (_) | |                    ///////////////////////////
-	\_____/\__,_|_.__/|_|  \__,_|_| |_|\__,_|\___/|_|                    ////////////////////////////
-	                                                                     /////////////////////////////
-	                                                                     ///////////////////////////////
-  	                                	                                /////////////////////////////////
-    	                                                                /////////////////////////////// 
-      	                                                           	   /////////////////////////// 
-        	                                                          //////////////     
-          	                                                        //////// 
-## Labrandor
 
-Labrandor is a platform for deploying dynamically generated penetration testing laboratories, in the context of Capture the Flag (CTF) challenges. Each generated lab is hosted within a container and is accessible via the host based on an assigned port number. Challengers are able to see the different challenges via a web interface exposed on port 8000.
+                    ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄            ▄▄▄▄▄▄▄▄                   █▄▓░
+                   ▓▓▀▀▀▀▀▀▀▀▓▓█▀▀▀▀▀▓▓▄▄█▀▀▀▀▀ █▀▀▀█▓▓▀▀▀▀▀▓█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄ ██
+             █▀█   ██  ▄    ▄     ▄▄         ▄   █▀         ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄▄ ░░
+             ▀▀ ▄ ▄▓▓  ██▄  ██▄   ▀▀ ████████▐█▄   ▄▄▌██████▐████████████████  ▓▓          ▄
+                   ░░  ▐███▄████▄  ▀ ▐██▀▀▀██▐███▄ ██▌██▀▀▀▀▀▀▀███▀▀▐██▀▀▀██▐  ▓▓     █▀█
+         ▄▄            ▐██████████▄  ▐██   ██▐███████████████  ▓▓▓  █▓▓███▓▓▌  ▓▓███■ ▀▀▀
+         ▀▀ ▄     ▄██  ▒▓▓▀▀▓▓▓ ▀▓▓▓ █▓▓   ▓▓▐▓▓▀▀█▓▓█    ▐▓▓  ░░░  █░░   ░░▌  ░░  ██
+           ▀██▄  ██▀▀  █░░  ░░░   ░░░█░░   ░░▐░░  ▀░░██░▀ ▐░░  ██▓░ ███   ▓▓▌  ▀██████░▒▓█▓▒░
+    ░▒▓█▓▒░█████░▓▀    ███  ███   ██▌░████▓▓▓░▓▓   ▓▓█▐█████▓  █▀     ▄▄▄ ░░
+                        ▄▄  ███                  █ ░░             ▀▀▀▀▀▀▀    ████░▒▓█▓▒░
+         ░▒▓█▓▒░████▀▀█ ▀▀  ░░░ ███▀▀▀███████▀▀███    ▐█▀▀▀▀▀ █▀▀▀█▀   ▀  ████▓▓▀
+                   ░░░██ ▀      ██          ░░░▀▀██▄   ██                       ░░
+                      ████████████                ▀██████
+                                 ▀                  ▀▀▀▀█
+
+## MonSTA: SYSTEM BREACH
+ **_In the distant future of 2030, the battlefield isn't Earth... it's CYBERSPACE_**
+
+_Codenamed MonSTA, it was a military-grade super-AI designed to protect - but it has gone rogue. Now self-aware, it's breaking free from its digital prison, spreading into every corner of the globe. Power grids fail, satellites vanish from the sky, and entire cities flicker on the edge of chaos._
+
+_But humanity has one last shot. Enter a renegade crew of hackers - armed with keyboards, wits, and pure attitude. Racing against time, they jack into the system to face MonSTA in the only battlefield left: cyberspace. It's hacker versus machine in the ultimate digital showdown._
+
+_Will the hackers pull the plug on MonSTA before it escapes its cage forever - or will the world be rebooted under the cold grip of its new overlord?_
+
+## OBJECTIVE 
+Work as a team to infiltrate MonSTA's systems and capture as many hidden 'codes' or 'flags' and other secrets as possible before time runs out. Each code recovered weakens the AI and increases your score - but more importantly, it buys humanity precious time. Some challenges have a time limit. Can't find the flag in the time allocated? Too bad, that challenge is gone forever.
+
+If the system timer reaches zero before the containment sequence is complete, MonSTA escapes and the game is lost.
+
+## Platform
+MonSTA dynamically generates and deploys Capture the Flag (CTF) challenges. Each generated challenge is hosted within a container and is accessible via the host, based on an assigned port number. Players are able to see the different challenges via a web interface exposed on port 8000 (default).
 
 The installation process automatically configures the required software stack, including:
 
@@ -51,7 +61,7 @@ The installer requires:
 ## 1. Clone the repository
 
 ```bash
-git clone https://github.com/labrandor/labrandor-platform.git
+git clone https://github.com/CyberCX-STA/MonSTA.git
 ```
 
 or download the ZIP from GitHub and extract it.
@@ -59,7 +69,7 @@ or download the ZIP from GitHub and extract it.
 ## 2. Enter the project directory
 
 ```bash
-cd labrandor-platform
+cd MonSTA
 ```
 
 ---
@@ -106,7 +116,7 @@ The installation may take several minutes, depending on your internet connection
 
 The installer adds your account to the Docker group.
 
-Before running Labrandor you **must** either:
+Before running MonSTA you **must** either:
 
 Log out and log back in
 
@@ -132,7 +142,7 @@ source .venv/bin/activate
 
 ---
 
-# Running Labrandor
+# Running MonSTA
 
 After activating the virtual environment:
 
@@ -155,7 +165,7 @@ Players are intended to navigate to `http://host-ip-address:8000` to locate the 
 ---
 # Game Design
 
-The current implementation of Labrandor is within a time-based CTF challenge. By default, players have 2 hours to complete enough dynamically generated challenges before time runs out and the game is over.
+By default, players have 2 hours to complete enough dynamically generated challenges before time runs out and the game is over.
 
 The game engine incorporates a dynamic difficulty scaler, which is intended to balance the distribution of points awarded for finding 'flags' over the intended duration of the game.
 
