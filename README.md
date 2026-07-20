@@ -23,7 +23,7 @@ _But humanity has one last shot. Enter a renegade crew of hackers - armed with k
 
 _Will the hackers pull the plug on MonSTA before it escapes its cage forever - or will the world be rebooted under the cold grip of its new overlord?_
 
-## OBJECTIVE 
+## Objective 
 Work as a team to infiltrate MonSTA's systems and capture as many hidden 'codes' or 'flags' and other secrets as possible before time runs out. Each code recovered weakens the AI and increases your score - but more importantly, it buys humanity precious time. Some challenges have a time limit. Can't find the flag in the time allocated? Too bad, that challenge is gone forever.
 
 If the system timer reaches zero before the containment sequence is complete, MonSTA escapes and the game is lost.
@@ -187,8 +187,6 @@ The installer automatically installs:
 
 These are installed inside the project's virtual environment.
 
----
-
 ## Node
 
 The installer automatically installs:
@@ -199,3 +197,13 @@ The installer automatically installs:
 No additional setup is required.
 
 ---
+
+## License and Trademarks
+
+The source code in this repository is licensed under the terms of the LICENSE file.
+
+MonSTA and the MonSTA logo are trademarks of CyberCX.
+
+The software licence grants permission to use, modify, and distribute the source code. It does not grant permission to use the MonSTA name, logo, or other project branding except as permitted by the Trademark Policy.
+
+Modified versions, forks, and derivative products must not use the MonSTA name or branding in a way that suggests they are official, approved, sponsored, or endorsed by the MonSTA project.
