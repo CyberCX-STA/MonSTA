@@ -1,4 +1,5 @@
 # Copyright (c) 2017-2026 Joel Panther
+# SPDX-License-Identifier: MIT
 # Licensed under the MIT License. 
 
 # Requires fastapi. Developed using v0.115.11-3
@@ -18,6 +19,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
+from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 import asyncio
 import docker
@@ -44,20 +46,21 @@ from db_connect import *
 # =============================
 # Class objects
 # =============================
-dds = DynamicDifficultyScaler() # Create dynamic difficulty scaler.
+dds = DynamicDifficultyScaler() # Create dynamic difficulty scaler
+pool = ProcessPoolExecutor(max_workers=1)
 
 # =============================
 # Game engine variables
 # =============================
-STARTING_CHALLENGES = 1 # Change to set number of challenges to generate when a new game starts.
+STARTING_CHALLENGES = 20 # Change to set number of challenges to generate when a new game starts.
 ADMIN_PASSWORD = "pg49kNKexFbx" # You will want to change this before you go live.
 
 clients = set() # HTTP clients for web interface.
-game_state = "standby" # States include: running, win, lose.
+game_state = "standby" # Default: standby. Other states include: running, win, lose.
 secrets_exhausted = False # Switch to disable secret generation. False = build secrets, True = don't build secrets.
 flagcounter = 0 # Used in testing.
 
-# Control flags for deploy_secret_check().
+# Control flags for deploy_secret_check() 
 worker_stop_event = asyncio.Event()
 worker_task = None
 
@@ -164,11 +167,11 @@ async def deploy_secret_check():
                     print(f"[{now()}][*] Secret build complete.")
                 else:
                     print(f"[{now()}][!] WARNING: No secret challenge to build.")
-     
+        
 # Creates the task for deploy_secret_check().
 def start_secret_check_task():
     global worker_task
-    print(f"[{now()}][*] Starting 'deploy_secret_checks' task/thread...")
+    # print(f"[{now()}][*] Starting 'deploy_secret_checks' task/thread...")
     if worker_task and not worker_task.done():
         return  # Already running.
     # Create background asyncio task.
@@ -189,8 +192,35 @@ def stop_secret_check_task():
             return
     except Exception as e:
         print(f"[{now()}][!] WARNING: {e}") # Probably not running.
-    
-# Remove challenge from challenge JSON file
+
+# Build music manifest JSON file.
+def create_music_manifest(music_dir="music"):
+    """
+    Scans the given directory recursively for .mp3 files
+    and writes their relative paths to a JSON manifest.
+    """
+    output_file = os.path.join(music_dir, "tracks.json")
+    mp3_files = []
+
+    # Ensure the directory exists.
+    if not os.path.isdir(music_dir):
+        print(f"[{now()}][!] ERROR: Directory '{music_dir}' not found.")
+        return
+
+    # Walk through the directory and subdirectories.
+    for root, dirs, files in os.walk(music_dir):
+        for file in files:
+            if file.lower().endswith(".mp3"):
+                rel_path = os.path.relpath(os.path.join(root, file), start=os.getcwd())
+                mp3_files.append(rel_path.replace("\\", "/"))
+
+    # Write the list to a JSON file
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(mp3_files, f, indent=2)
+
+    print(f"[{now()}][*] Manifest created: {output_file} ({len(mp3_files)} tracks)")
+
+# Remove challenge from challenge JSON file.
 def delete_system_by_challenge_id(challenge_id, backup: bool = True):
     """
     Delete system entries matching 'challenge_id' from JSON file.
@@ -200,16 +230,18 @@ def delete_system_by_challenge_id(challenge_id, backup: bool = True):
     """
     json_path = CHALLENGES_FILE
     if not json_path.exists():
-        raise FileNotFoundError(f"No such file: {json_path}")
+        print(f"[{now()}][!] ERROR: No such file: {json_path}")
+        raise 
 
-    # Load JSON
+    # Load JSON.
     with json_path.open("r", encoding="utf-8") as f:
         data = json.load(f)
 
     if not isinstance(data, dict) or "domains" not in data or not isinstance(data["domains"], list):
-        raise ValueError("Unexpected JSON structure: top-level 'domains' list is required")
+        print(f"[{now()}][!] ERROR: Unexpected JSON structure. Top-level 'domains' list is required.")
+        raise
 
-    # Normalise for comparison (handle int/str mismatches)
+    # Normalise for comparison (handle int/str mismatches).
     target = str(challenge_id)
 
     removed_total = 0
@@ -221,7 +253,7 @@ def delete_system_by_challenge_id(challenge_id, backup: bool = True):
         kept = []
         removed_here = 0
         for s in systems:
-            # Only treat dicts with 'challenge_id' as candidates
+            # Only treat dicts with 'challenge_id' as candidates.
             cid = str(s.get("challenge_id")) if isinstance(s, dict) and "challenge_id" in s else None
             if cid is not None and cid == target:
                 removed_here += 1
@@ -232,17 +264,16 @@ def delete_system_by_challenge_id(challenge_id, backup: bool = True):
             domain["systems"] = kept
             removed_total += removed_here
 
-    # If nothing was removed, do not rewrite the file
+    # If nothing was removed, do not rewrite the file.
     if removed_total == 0:
         print(f"[{now()}][*] ERROR: No challenge removed from JSON?")
-        #return 0
         return
 
-    # Optional backup
+    # Optional backup.
     if backup:
         shutil.copy2(json_path, json_path.with_suffix(json_path.suffix + ".bak"))
 
-    # Write updated JSON (pretty-printed)
+    # Write updated JSON (pretty-printed).
     with json_path.open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
@@ -261,14 +292,14 @@ def challenge_cleanup(challenge_id):
         cursor.execute(f"DROP DATABASE `{challenge_id}`")
         conn.commit()
 
-    except mysql.connector.Error as err:
-        print(f"[{now()}][!] WARNING: Maybe no database used in this challenge?: {err}")
+    except mysql.connector.Error as e:
+        print(f"[{now()}][!] WARNING: Maybe no database used in this challenge?: {e}")
     print(f"[{now()}][*] Removing users...")
     try:
         cursor.execute(f"DROP USER `readonly{challenge_id}`@``")
         conn.commit()
-    except mysql.connector.Error as err:
-        print(f"[{now()}][!] ERROR: {err}")
+    except mysql.connector.Error as e:
+        print(f"[{now()}][!] ERROR: {e}")
     finally:
         if cursor:
             cursor.close()
@@ -693,6 +724,7 @@ async def countdown_timer():
                 dds.set_visible_time(remaining=timer_value/60, total=visible_total/60)
                 last_save_counter += 1
                 timer_percent = int((TIMER_START - timer_value) / TIMER_START * 100)
+               # await update_banner({"type": "containment_banner", "value": timer_percent}) # Aesthetic function.
                 await broadcast_to_clients({"type": "containment_banner", "value": timer_percent}) # Aesthetic function.
                 if last_save_counter >= SAVE_INTERVAL:
                     dds.save_state()
@@ -972,34 +1004,14 @@ def force_new_game():
     print(f"[{now()}][*] Done.")
     return
 
-# Starts the new game or resumes the previously saved game.
+# Sets visible time, total time, and progress of game in the DDS.
 def start_game():
-    global timer_task, game_state, timer_value, visible_total, progress_value
-    print(f"[{now()}][*] Reset clock, if applicable...")
-    try:
-        clock_reset_event.set()
-    except Exception as err:
-        print(f"[{now()}][!] ERROR: {err}")
-    print(f"[{now()}][*] Updating DDS...")
-    # Update DDS with times and progress.
-    try:
-        dds.set_visible_time_remaining(int(timer_value/60))
-        dds.set_visible_total_time(int(visible_total/60))
-        dds.set_progress(int(progress_value))
-    except Exception as err:
-        print(f"[{now()}][!] ERROR: {err}")
-
-    print(f"[{now()}][*] Starting the countdown timer...")
-    # Cancel any stuck task immediately.
-    if timer_task and not timer_task.done():
-        print(f"[{now()}][*] Killing old timer task...")
-        timer_task.cancel()
-    timer_task = asyncio.create_task(countdown_timer()) # Start fresh timer.
-    start_secret_check_task() # Start fresh secret check task.
-    game_state = "running"
+    dds.set_visible_time_remaining(int(timer_value/60))
+    dds.set_visible_total_time(int(visible_total/60))
+    dds.set_progress(int(progress_value))
     return
 
-# Build starting challenges.
+# Build X starting challenges.
 def build_challenges():
     """
     When a new game is triggered, this function builds X number of
@@ -1026,6 +1038,7 @@ async def admin_function(secret, command):
         force_new_game()
         build_challenges()
         start_game()
+        game_state = "running"
         await broadcast_to_clients({"type": "reload-page"})
 
     if command == "force_win":
@@ -1045,11 +1058,21 @@ async def admin_function(secret, command):
         current_game = load_progress()
         # Load the existing DDS state, if available.
         if not dds.load_state(SAVESTATE_FILE_PATH) and current_game == False:
-            print(f"[{now()}][*] WARNING: No prior saved game. Starting new game, resetting timers and progress...")
+            print(f"[{now()}][!] WARNING: No prior saved game. Starting new game, resetting timers and progress...")
             force_new_game()
         start_game()
+        game_state = "running"
         await broadcast_to_clients({"type": "reload-page"})
-           
+    
+    if command == "title_screen":
+        print(f"[{now()}][*] Return to title screen...")
+        game_state = "standby"
+        print(f"[{now()}][*] Forcing client page reloads...")
+        await broadcast_to_clients({"type": "reload-page"})
+        print(f"[{now()}][*] Saving game...")
+        dds.save_state()
+        save_progress()
+        
     if command == "new_challenge":
         print(f"[{now()}][*] Building new challenge...")
         values = provision_challenge("web")
@@ -1061,7 +1084,7 @@ async def admin_function(secret, command):
                 )
             await asyncio.sleep(0) # Flush
         if values is None:
-            print(f"[{now()}][!] ERROR: Problem building challenge. None available?")
+            print(f"[{now()}][!] ERROR: Problem building new challenge. No new challenges available?")
     
     if command == "new_bonus_challenge":
         print(f"[{now()}][*] Attempting to build new secret/bonus challenge...")
@@ -1131,7 +1154,8 @@ async def admin_function(secret, command):
 
     if command == "add_time": 
         print("[!] Adding 10 minutes")
-        passage_of_time = 10        
+        passage_of_time = 10
+        #print(f"[{now()}][*] Time to find:", passage_of_time, "minutes")
         passage_of_time = passage_of_time*60
 
         timer_value += passage_of_time
@@ -1217,26 +1241,75 @@ async def determine_progress():
     if progress_value >= 100:
         await win_or_lose("win")
 
+# Initialisation function for server's blocking tasks at startup.
+def blocking_init_work():
+    """
+    This function executes blocking, synchronous functions in a 
+    seperate thread/process pool, so they do not freeze the asyncio 
+    event loop.
+
+    This function is called as:
+        await loop.run_in_executor(pool, blocking_init_work)
+
+    The tasks/functions included typically hold up server responding
+    to initial client requests. 
+    """
+    print(f"[{now()}][*] Starting new game...")
+    force_new_game() # Forces game artefacts to be reset.
+    build_challenges() # Builds initial starting challenges.
+    start_game() # Starts the game.
+
+async def post_startup_work(app: FastAPI):
+    global timer_task, game_state
+    clock_reset_event.set()
+    await asyncio.sleep(0) # Let startup fully complete.
+    loop = asyncio.get_running_loop()
+    result = await loop.run_in_executor(pool, blocking_init_work) # Execute blocking functions in their own thread.
+    app.state.init_result = result
+    app.state.init_done = True
+
+    # Cancel any stuck task immediately.
+    if timer_task and not timer_task.done():
+        print(f"[{now()}][*] Killing old timer task...")
+        timer_task.cancel()
+    timer_task = asyncio.create_task(countdown_timer()) # Start fresh timer.
+    start_secret_check_task() # Start fresh secret check task.
+
+    game_state = "running"
+    print(f"[{now()}][*] Game startup finished. Forcing client web page reloads...")
+    await asyncio.sleep(0) # Flush.
+    await broadcast_to_clients({"type": "reload-page"})
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    app.state.init_done = False
+    app.state.startup_task = asyncio.create_task(post_startup_work(app))
     print(f"[{now()}][*] Server ready.")
-    print(f"[{now()}][*] Waiting for admin to start game.")
     yield
     # Shutdown logic.
     print(f"[{now()}][*] Saving game...")
     dds.save_state()
     save_progress()
     print(f"[{now()}][*] Save complete!")
+    task = getattr(app.state, "bg_task", None)
+    if task and not task.done():
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+    pool.shutdown(wait=False, cancel_futures=True)
     print(f"[{now()}][*] It is now safe to turn off your computer.")
 
 app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/music", StaticFiles(directory="music"), name="music")
 app.mount("/sfx", StaticFiles(directory="sfx"), name="sfx")
 
 @app.get("/", response_class=HTMLResponse)
 async def get_home(request: Request):
     if game_state == "standby":
-        return templates.TemplateResponse("index.html", {"request": request})
+        return templates.TemplateResponse("title.html", {"request": request})
     if game_state == "running":
         return templates.TemplateResponse("index.html", {"request": request})
     if game_state == "win":
@@ -1304,7 +1377,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Client has sent a flag to the server to be checked.
                 if mtype =="code_submit":
                     result = code_attempt(data["challenge_id"], data["submitted_code"], data["system_name"])
-                    print(f"[{now()}][*] Result:",result)
+                    print(f"[{now()}][*] Result:", result)
                     print(f"[{now()}][*] Sending result to client...")
                     # Respond to the specific client; do not send a broadcast.
                     await websocket.send_json({"type": "code_submit_ack","challenge_id": data["challenge_id"],"response": result})
@@ -1353,13 +1426,14 @@ if __name__ == "__main__":
     log = Tee("program.log") # Logging.
     sys.stdout = log # Sending output to log file.
     sys.stderr = log # Sending errors to log file.
+    create_music_manifest()
 
     # Check for database connection.
     try:
         conn = database_connection()
         conn.close()
     except Exception as e:
-        print(f"[{now()}][!] ERROR: Database connection failed: {e}")
+        print(f"[{now()}][*] ERROR: Database connection failed: {e}")
         sys.exit(1) 
     
     # Check that Docker is running.
@@ -1367,7 +1441,7 @@ if __name__ == "__main__":
         client = docker.from_env()
         client.ping()
     except Exception as e:
-        print(f"[{now()}][!] ERROR: Unable to connect to Docker. Is it running?: {e}")
+        print(f"[{now()}][*] ERROR: Unable to connect to Docker. Is it running?: {e}")
         sys.exit(1)
 
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False)
