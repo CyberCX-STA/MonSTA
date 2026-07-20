@@ -1,6 +1,7 @@
 ## Copyright
 
 Copyright (c) 2026 Joel Panther
+
 Copyright (c) 2026 CyberCX
 
 ## Software License
