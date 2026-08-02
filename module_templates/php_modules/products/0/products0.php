@@ -68,7 +68,7 @@ if (strpos(current_page(), 'auth_research') === 0) {
         <?php if ($details): ?>
             <div class="card">
                 <h2><?= e($details['product_name']) ?></h2>
-				<?php $img = rawurlencode($details['product_name']) . '.png'; ?>
+				<?php $img = rawurlencode($details['product_name']) . '.jpg'; ?>
 				<img class="product_image" src="./<?= e($img) ?>" alt="system image">
                 <h3>About</h3>
                 <p><?= nl2br(e($details['about'])) ?></p>
