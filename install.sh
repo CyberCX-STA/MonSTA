@@ -30,7 +30,7 @@ fi
 
 echo "[+] Installing OS packages..."
 sudo apt update
-sudo apt install -y ca-certificates curl wget python3 python3-pip python3-venv nodejs npm util-linux-extra
+sudo apt install -y ca-certificates curl wget python3 python3-pip python3-venv nodejs npm util-linux-extra mariadb-client-core
 
 echo "[+] Installing Docker official repository..."
 sudo install -m 0755 -d /etc/apt/keyrings
