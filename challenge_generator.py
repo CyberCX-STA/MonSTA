@@ -627,9 +627,15 @@ def build_first_gate_key_module(platform_module_pool, challenge_id, gate_type, g
         with open(output_file, "w", encoding="utf-8") as f:
             json.dump(pairs, f, indent=4)
         print(f"[{now()}][*] User JSON written.")
-        set_mass_user_permissions(challenge_id, permission="hub", value=hub)
-        set_mass_user_permissions(challenge_id, permission="work", value=work)
-        set_mass_user_permissions(challenge_id, permission="research", value=research)
+        if entry_point == "hub.php":
+            for picked_username, picked_password in zip(picked_usernames, picked_passwords):
+                set_single_user_permission(challenge_id, "hub", picked_username)
+        if entry_point == "work.php":
+            for picked_username, picked_password in zip(picked_usernames, picked_passwords):
+                set_single_user_permission(challenge_id, "work", picked_username)
+        if entry_point == "research.php":
+            for picked_username, picked_password in zip(picked_usernames, picked_passwords):
+                set_single_user_permission(challenge_id, "research", picked_username)
         print(f"[{now()}][*] User permissions mass updated.")
 
     if gate_key == "config.old":
