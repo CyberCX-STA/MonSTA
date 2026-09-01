@@ -94,6 +94,8 @@ progress_value = 0  # 0-100%. Default is 0 (new game).
 CHALLENGES_FILE = Path("deployed_challenges.json") # Where the current challenges are saved for reference.
 SAVESTATE_FILE_PATH = Path("game_state.json") # Full game state save file.
 PROGRESS_FILE_PATH = Path("progress.json") # Only tracks time and points.
+os.makedirs("music", exist_ok=True) # Put optional music MP3 files here.
+os.makedirs("puppet_logs", exist_ok=True) # Puppet logs live here.
 
 # Duplicates anything written to console to a log file.
 class Tee:
