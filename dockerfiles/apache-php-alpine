@@ -17,7 +17,7 @@ RUN rm -f /var/www/localhost/htdocs/index.html
 
 # Make sure index.php is treated as a default document (optional, but handy)
 RUN echo 'DirectoryIndex index.php index.html' > /etc/apache2/conf.d/dirindex.conf
-RUN echo 'upload_tmp_dir = /var/www/localhost/htdocs/upload' >> /etc/php82/php.ini
+RUN echo 'upload_tmp_dir = /var/www/localhost/htdocs/uploads' >> /etc/php82/php.ini
 
 # Ensure upload dir exists and is writable by Apache
 RUN mkdir -p /var/www/localhost/htdocs/uploads \
