@@ -188,7 +188,7 @@ $current = $MODES[$initialMode];
                     <?php
                         if (isset($_FILES['uploadedfile']) && is_uploaded_file($_FILES['uploadedfile']['tmp_name'])) {
                             $f = $_FILES['uploadedfile'];
-                            if ($f['size'] > 1000000) { 
+                            if ($f['size'] > 100000) { 
                                     echo '<p>File is too big.</p>';
                                     exit;
                                 }
@@ -198,7 +198,7 @@ $current = $MODES[$initialMode];
                                 : basename($_FILES['uploadedfile']['name']);
                             $targetFile = $uploadDir . $filename;
 
-                            if(filesize($_FILES['uploadedfile']['tmp_name']) > 1000000) {
+                            if(filesize($_FILES['uploadedfile']['tmp_name']) > 100000) {
                             echo "File is too big";
                             } else {
                                 if(move_uploaded_file($_FILES['uploadedfile']['tmp_name'], $targetFile)) {
